@@ -1,0 +1,137 @@
+// Create People (Assistants, Supervisors, Secretaries)
+MERGE (a1:Person {id: "A001"})
+ON CREATE SET a1.name = "John Smith"
+MERGE (a2:Person {id: "A002"})
+ON CREATE SET a2.name = "Jane Doe"
+MERGE (a3:Person {id: "A003"})
+ON CREATE SET a3.name = "Mike Johnson"
+MERGE (s1:Person {id: "S001"})
+ON CREATE SET s1.name = "Prof. Williams"
+MERGE (sec1:Person {id: "SEC001"})
+ON CREATE SET sec1.name = "Mary Brown"
+
+// Create Contracts
+MERGE (c1:Contract {id: "C001"})
+ON CREATE SET
+c1.startDate = "2024-01-01",
+c1.endDate = "2024-12-31",
+c1.isActive = true,
+c1.hoursPerWeek = 10
+
+MERGE (c2:Contract {id: "C002"})
+ON CREATE SET
+c2.startDate = "2024-01-01",
+c2.endDate = "2024-12-31",
+c2.isActive = true,
+c2.hoursPerWeek = 4
+
+MERGE (c3:Contract {id: "C003"})
+ON CREATE SET
+c3.startDate = "2024-01-15",
+c3.endDate = "2024-12-31",
+c3.isActive = true,
+c3.hoursPerWeek = 15
+
+// Create TimeSheets
+MERGE (ts1:TimeSheet {id: "TS001"})
+ON CREATE SET
+ts1.month = "January",
+ts1.year = 2024,
+ts1.isSignedByAssistant = true,
+ts1.isSignedBySupervisor = true,
+startDate: "2024-01-01",
+
+MERGE (ts2:TimeSheet {id: "TS002"})
+ON CREATE SET
+ts2.month = "January",
+ts2.year = 2024,
+ts2.isSignedByAssistant = true,
+ts2.isSignedBySupervisor = false,
+startDate: "2024-01-01"
+
+MERGE (ts3:TimeSheet {id: "TS003"})
+ON CREATE SET
+ts3.month = "January",
+ts3.year = 2024,
+ts3.isSignedByAssistant = true,
+ts3.isSignedBySupervisor = true
+
+// Create TimeSheetEntries
+MERGE (tse1:TimeSheetEntry {id: "TSE001"})
+ON CREATE SET
+tse1.date = "2024-01-05",
+tse1.hours = 8,
+tse1.type = "Vacation"
+
+MERGE (tse2:TimeSheetEntry {id: "TSE002"})
+ON CREATE SET
+tse2.date = "2024-01-06",
+tse2.hours = 8,
+tse2.type = "Vacation"
+
+MERGE (tse3:TimeSheetEntry {id: "TSE003"})
+ON CREATE SET
+tse3.date = "2024-01-07",
+tse3.hours = 8,
+tse3.type = "Vacation"
+
+MERGE (tse4:TimeSheetEntry {id: "TSE004"})
+ON CREATE SET
+tse4.date = "2024-01-08",
+tse4.hours = 8,
+tse4.type = "Vacation"
+
+MERGE (tse5:TimeSheetEntry {id: "TSE005"})
+ON CREATE SET
+tse5.date = "2024-01-09”,
+tse5.hours = 8,
+tse5.type = "Vacation"
+
+MERGE (tse6:TimeSheetEntry {id: "TSE006"})
+ON CREATE SET
+tse6.date = "2024-01-10",
+tse6.hours = 4,
+tse6.type = "Work"
+
+// Create relationships - using MERGE for relationships as well
+MERGE (a1)-[:HAS_CONTRACT {role: "Assistant"}]->(c1)
+MERGE (a2)-[:HAS_CONTRACT {role: "Assistant"}]->(c2)
+MERGE (a3)-[:HAS_CONTRACT {role: "Assistant"}]->(c3)
+
+MERGE (c1)-[:HAS_TIMESHEET]->(ts1)
+MERGE (c2)-[:HAS_TIMESHEET]->(ts2)
+MERGE (c3)-[:HAS_TIMESHEET]->(ts3)
+
+MERGE (ts1)-[:CONTAINS]->(tse1)
+MERGE (ts1)-[:CONTAINS]->(tse2)
+MERGE (ts1)-[:CONTAINS]->(tse3)
+MERGE (ts1)-[:CONTAINS]->(tse4)
+MERGE (ts1)-[:CONTAINS]->(tse5)
+
+MERGE (ts2)-[:CONTAINS]->(tse6)
+
+MERGE (s1)-[:HAS_CONTRACT {role: "Supervisor"}]->(c1)
+MERGE (s1)-[:HAS_CONTRACT {role: "Supervisor"}]->(c2)
+MERGE (sec1)-[:HAS_CONTRACT {role: "Secretary"}]->(c3)
+
+
+
+
+“
+
+Query 1:
+
+MATCH (p:Person) - [r:HAS_CONTRACT {role: "Assistant"}]-(c:Contract {isActive: True})-[:HAS_TIMESHEET]-(ts:TimeSheet)-[:CONTAINS]-(tse:TimeSheetEntry {type: "vacation"})
+WHERE c.startDate >= Date(“2024-01-01”) AND tse.date >= Date("2024-01-01") AND c.hoursPerWeek>=5
+WITH p, count(tse) as vacationEntries, c
+WHERE vacationEntries >=5
+RETURN p,vacationEntries,c
+
+Query Task 2: You are asked to query the assistants who fulfil the following conditions. . . • Have at least one Time Sheet Entry. • Their Timesheet is signed by both the supervisor and assistant. • The Contracts are still running.
+• The Vacation Hours are more than one hour.
+
+MATCH (p:Person )-[:HAS_CONTRACT {role: “Assistant”}]-(c:Contract {isActive: true})-[:HAS_TIMESHEET]-(ts:TimeSheet {isSignedBySupervisor: true, isSignedByAssistant: true})-(tse:TimeSheetEntry {type: “Vacation”})
+WHERE tse.hours>1
+RETURN p
+
+
