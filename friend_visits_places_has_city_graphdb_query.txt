@@ -1,0 +1,46 @@
+MATCH (p:Person {name: "Alice"})-[:HAS_FRIEND*1..]-(friend:Person)-[:HAS_VISIT]-(poi:Poi)-[:HAS_CITY*0..]-(c:City)
+WHERE
+NOT (p)-[:HAS_VISIT]-(poi) AND
+NOT (p)-[:HAS_HOME]-(c)
+RETURN poi,c
+
+
+
+
+“””
+
+MERGE (alice:Person {name: "Alice"})
+MERGE (john:Person {name: "John"})
+MERGE (volker:Person {name: "Volker"})
+
+
+MERGE (deck:Poi {name:"deck"})
+MERGE (bn:Poi {name:"bonnUni"})
+MERGE (lahn:Poi {name:"lahnstein"})
+
+
+MERGE (koblenz:City {name: "Koblenz"})
+MERGE (lahnstein: City {name: "Lahnstein"})
+MERGE (bonn: City {name: "bonn"})
+
+
+
+MERGE (alice)-[:HAS_VISIT {year:2018}]-(deck)
+MERGE (alice)-[:HAS_VISIT {year:2019}]-(deck)
+MERGE (alice)-[:HAS_VISIT {year:2020}]-(deck)
+MERGE (john)-[:HAS_VISIT {year:2019}]-(deck)
+MERGE (john)-[:HAS_VISIT {year:2019}]-(lahn)
+MERGE (volker)-[:HAS_VISIT {year:2018}]-(bn)
+
+
+MERGE (alice)-[:HAS_HOME]-(koblenz)
+MERGE (john)-[:HAS_HOME]-(bonn)
+MERGE (volker)-[:HAS_HOME]-(lahnstein)
+
+MERGE (alice)-[:HAS_FRIEND]-(john)
+MERGE (john)-[:HAS_FRIEND]-(volker)
+
+MERGE (deck)-[:HAS_CITY]-(koblenz)
+MERGE (lahn)-[:HAS_CITY]-(lahnstein)
+MERGE (bn)-[:HAS_CITY]-(koblenz)
+
